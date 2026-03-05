@@ -1,0 +1,24 @@
+resources:
+  jobs:
+    sample_streaming_test:
+      name: streaming_monitoring_sample_test_${var.environment}
+      tasks:
+        - task_key: run_sample_streaming
+          notebook_task:
+            notebook_path: ../notebooks/05_sample_streaming_job.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${resources.schemas.monitoring.name}
+              environment: ${var.environment}
+              job_id: "{{job.id}}"
+              num_batches: "10"
+              rows_per_batch: "500"
+          environment_key: default
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
+      tags:
+        environment: ${var.environment}
+        component: streaming-monitoring
+        purpose: integration-test

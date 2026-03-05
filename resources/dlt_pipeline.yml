@@ -1,0 +1,19 @@
+resources:
+  pipelines:
+    streaming_monitoring_pipeline:
+      name: streaming_monitoring_${var.environment}
+      catalog: ${var.catalog}
+      target: ${var.schema}
+      channel: CURRENT
+      continuous: true
+      development: false
+      photon: true
+      libraries:
+        - notebook:
+            path: ../notebooks/04_dlt_monitoring_pipeline.py
+      configuration:
+        source_event_log_table: ${var.source_event_log_table}
+        monitoring_environment: ${var.environment}
+        sla_latency_critical_ms: ${var.sla_latency_critical_ms}
+        time_range_days: ${var.time_range_days}
+      serverless: true

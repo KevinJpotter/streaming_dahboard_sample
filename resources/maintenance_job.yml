@@ -1,0 +1,25 @@
+resources:
+  jobs:
+    monitoring_maintenance:
+      name: streaming_monitoring_maintenance_${var.environment}
+      schedule:
+        quartz_cron_expression: "0 0 3 * * ?"
+        timezone_id: UTC
+        pause_status: UNPAUSED
+      tasks:
+        - task_key: optimize_and_purge
+          notebook_task:
+            notebook_path: ../notebooks/03_maintenance.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${resources.schemas.monitoring.name}
+              retention_days: "90"
+          environment_key: default
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
+      tags:
+        environment: ${var.environment}
+        component: streaming-monitoring
+        schedule: daily

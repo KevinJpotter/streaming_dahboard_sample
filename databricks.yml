@@ -1,0 +1,58 @@
+bundle:
+  name: streaming_monitoring_dashboard
+
+variables:
+  catalog:
+    description: Unity Catalog name for monitoring tables
+    default: serverless_stable_az5k2q_catalog
+  environment:
+    description: Environment tag (dev, staging, prod)
+    default: prod
+  warehouse_id:
+    description: SQL warehouse ID for dashboard and alerts
+    default: ""
+  source_event_log_table:
+    description: Fully qualified source pipeline event log table
+    default: serverless_stable_az5k2q_catalog.default.event_log
+  sla_latency_critical_ms:
+    description: SLA latency threshold in milliseconds
+    default: "60000"
+  schema:
+    description: Monitoring schema name (auto-prefixed in dev mode)
+    default: monitoring
+  time_range_days:
+    description: Dashboard lookback window in days
+    default: "7"
+
+include:
+  - resources/schemas.yml
+  - resources/dlt_pipeline.yml
+  - resources/dashboard.yml
+  - resources/maintenance_job.yml
+  - resources/sample_job.yml
+
+targets:
+  dev:
+    mode: development
+    default: true
+    variables:
+      catalog: serverless_stable_az5k2q_catalog
+      environment: dev
+      warehouse_id: 204151671452fb4f
+    workspace:
+      profile: fevm
+
+  staging:
+    variables:
+      catalog: serverless_stable_az5k2q_catalog
+      environment: staging
+    workspace:
+      profile: fevm
+
+  prod:
+    mode: production
+    variables:
+      catalog: serverless_stable_az5k2q_catalog
+      environment: prod
+    workspace:
+      profile: fevm

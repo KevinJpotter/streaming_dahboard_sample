@@ -1,0 +1,229 @@
+resources:
+  queries:
+    alert_sla_breach:
+      display_name: "[Monitor] SLA Breach — ${var.environment}"
+      warehouse_id: ${var.warehouse_id}
+      query_text: |
+        SELECT
+          query_name,
+          COUNT(*) AS breach_count,
+          MAX(latency_ms) AS max_latency_ms,
+          MAX(sla_threshold_ms) AS sla_threshold_ms
+        FROM ${var.catalog}.monitoring.sla_latency_metrics
+        WHERE environment = '${var.environment}'
+          AND sla_breach_flag = true
+          AND timestamp >= current_timestamp() - INTERVAL 10 MINUTE
+        GROUP BY query_name
+        HAVING COUNT(*) > 0
+
+    alert_sustained_backpressure:
+      display_name: "[Monitor] Sustained Backpressure — ${var.environment}"
+      warehouse_id: ${var.warehouse_id}
+      query_text: |
+        WITH recent_batches AS (
+          SELECT
+            details:stream_progress.id::STRING                        AS query_id,
+            details:stream_progress.name::STRING                      AS query_name,
+            details:stream_progress.batchId::BIGINT                   AS batch_id,
+            CASE
+              WHEN details:stream_progress.inputRowsPerSecond::DOUBLE >
+                   details:stream_progress.processedRowsPerSecond::DOUBLE THEN 1
+              ELSE 0
+            END AS is_backpressured,
+            ROW_NUMBER() OVER (
+              PARTITION BY details:stream_progress.id::STRING
+              ORDER BY details:stream_progress.batchId::BIGINT DESC
+            ) AS rn
+          FROM ${var.catalog}.monitoring.streaming_metrics
+          WHERE environment = '${var.environment}'
+            AND timestamp >= current_timestamp() - INTERVAL 30 MINUTE
+        ),
+        last_5 AS (
+          SELECT query_id, query_name,
+            SUM(is_backpressured) AS backpressured_count
+          FROM recent_batches WHERE rn <= 5
+          GROUP BY query_id, query_name
+        )
+        SELECT query_name, backpressured_count
+        FROM last_5
+        WHERE backpressured_count >= 5
+
+    alert_batch_duration_spike:
+      display_name: "[Monitor] Batch Duration Spike — ${var.environment}"
+      warehouse_id: ${var.warehouse_id}
+      query_text: |
+        WITH rolling AS (
+          SELECT
+            details:stream_progress.name::STRING                      AS query_name,
+            details:stream_progress.id::STRING                        AS query_id,
+            details:stream_progress.batchId::BIGINT                   AS batch_id,
+            details:stream_progress.batchDuration::BIGINT             AS batch_duration_ms,
+            AVG(details:stream_progress.batchDuration::BIGINT) OVER (
+              PARTITION BY details:stream_progress.id::STRING
+              ORDER BY details:stream_progress.batchId::BIGINT
+              ROWS BETWEEN 20 PRECEDING AND 1 PRECEDING
+            ) AS rolling_avg_duration_ms
+          FROM ${var.catalog}.monitoring.streaming_metrics
+          WHERE environment = '${var.environment}'
+            AND timestamp >= current_timestamp() - INTERVAL 1 HOUR
+        )
+        SELECT query_name, batch_id, batch_duration_ms,
+          ROUND(rolling_avg_duration_ms, 0) AS rolling_avg_duration_ms,
+          ROUND(batch_duration_ms / NULLIF(rolling_avg_duration_ms, 0), 2) AS spike_factor
+        FROM rolling
+        WHERE batch_duration_ms > 3.0 * rolling_avg_duration_ms
+          AND rolling_avg_duration_ms IS NOT NULL
+        ORDER BY spike_factor DESC
+        LIMIT 10
+
+    alert_stream_terminated:
+      display_name: "[Monitor] Stream Terminated — ${var.environment}"
+      warehouse_id: ${var.warehouse_id}
+      query_text: |
+        SELECT query_id, query_name,
+          timestamp AS terminated_at,
+          exception_type, exception_message,
+          termination_reason, restart_count
+        FROM ${var.catalog}.monitoring.stream_errors
+        WHERE environment = '${var.environment}'
+          AND timestamp >= current_timestamp() - INTERVAL 10 MINUTE
+        ORDER BY timestamp DESC
+
+    alert_state_memory_growth:
+      display_name: "[Monitor] State Memory Growth — ${var.environment}"
+      warehouse_id: ${var.warehouse_id}
+      query_text: |
+        WITH memory_window AS (
+          SELECT
+            details:stream_progress.id::STRING                        AS query_id,
+            details:stream_progress.name::STRING                      AS query_name,
+            AGGREGATE(
+              from_json(details:stream_progress.stateOperators, 'ARRAY<STRUCT<memoryUsedBytes:BIGINT>>'),
+              CAST(0 AS BIGINT),
+              (acc, x) -> acc + COALESCE(x.memoryUsedBytes, 0)
+            ) AS state_memory_bytes,
+            timestamp,
+            FIRST_VALUE(
+              AGGREGATE(
+                from_json(details:stream_progress.stateOperators, 'ARRAY<STRUCT<memoryUsedBytes:BIGINT>>'),
+                CAST(0 AS BIGINT),
+                (acc, x) -> acc + COALESCE(x.memoryUsedBytes, 0)
+              )
+            ) OVER (
+              PARTITION BY details:stream_progress.id::STRING
+              ORDER BY timestamp
+              ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+            ) AS memory_30min_ago,
+            LAST_VALUE(
+              AGGREGATE(
+                from_json(details:stream_progress.stateOperators, 'ARRAY<STRUCT<memoryUsedBytes:BIGINT>>'),
+                CAST(0 AS BIGINT),
+                (acc, x) -> acc + COALESCE(x.memoryUsedBytes, 0)
+              )
+            ) OVER (
+              PARTITION BY details:stream_progress.id::STRING
+              ORDER BY timestamp
+              ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+            ) AS memory_now
+          FROM ${var.catalog}.monitoring.streaming_metrics
+          WHERE environment = '${var.environment}'
+            AND timestamp >= current_timestamp() - INTERVAL 30 MINUTE
+        )
+        SELECT DISTINCT query_name,
+          ROUND(memory_30min_ago / (1024.0 * 1024.0), 2) AS memory_start_mb,
+          ROUND(memory_now / (1024.0 * 1024.0), 2) AS memory_end_mb,
+          ROUND(100.0 * (memory_now - memory_30min_ago) / NULLIF(memory_30min_ago, 0), 2) AS growth_pct
+        FROM memory_window
+        WHERE memory_30min_ago > 0
+          AND (100.0 * (memory_now - memory_30min_ago) / memory_30min_ago) > 20.0
+
+  alerts:
+    sla_breach_alert:
+      display_name: "Streaming SLA Breach — ${var.environment}"
+      query_id: ${resources.queries.alert_sla_breach.id}
+      condition:
+        op: GREATER_THAN
+        operand:
+          column:
+            name: breach_count
+        threshold:
+          value:
+            double_value: 0
+      custom_body: |
+        SLA breach detected in ${var.environment}.
+        One or more streams exceeded their latency threshold.
+        Severity: CRITICAL — Escalation: PagerDuty
+      notify_on_ok: false
+      rearm: 600
+
+    sustained_backpressure_alert:
+      display_name: "Sustained Backpressure — ${var.environment}"
+      query_id: ${resources.queries.alert_sustained_backpressure.id}
+      condition:
+        op: GREATER_THAN
+        operand:
+          column:
+            name: backpressured_count
+        threshold:
+          value:
+            double_value: 4
+      custom_body: |
+        Sustained backpressure detected in ${var.environment}.
+        Input rate > processed rate for 5+ consecutive batches.
+        Severity: WARNING — Escalation: Slack
+      notify_on_ok: false
+      rearm: 900
+
+    batch_duration_spike_alert:
+      display_name: "Batch Duration Spike — ${var.environment}"
+      query_id: ${resources.queries.alert_batch_duration_spike.id}
+      condition:
+        op: GREATER_THAN
+        operand:
+          column:
+            name: spike_factor
+        threshold:
+          value:
+            double_value: 3.0
+      custom_body: |
+        Batch duration spike detected in ${var.environment}.
+        Duration exceeds 3x the rolling average.
+        Severity: WARNING — Escalation: Slack
+      notify_on_ok: false
+      rearm: 600
+
+    stream_terminated_alert:
+      display_name: "Stream Terminated — ${var.environment}"
+      query_id: ${resources.queries.alert_stream_terminated.id}
+      condition:
+        op: GREATER_THAN
+        operand:
+          column:
+            name: query_id
+        threshold:
+          value:
+            double_value: 0
+      custom_body: |
+        Stream terminated in ${var.environment}.
+        Immediate investigation required.
+        Severity: FAILURE — Escalation: PagerDuty
+      notify_on_ok: false
+      rearm: 300
+
+    state_memory_growth_alert:
+      display_name: "State Memory Growth — ${var.environment}"
+      query_id: ${resources.queries.alert_state_memory_growth.id}
+      condition:
+        op: GREATER_THAN
+        operand:
+          column:
+            name: growth_pct
+        threshold:
+          value:
+            double_value: 20.0
+      custom_body: |
+        State memory grew >20% in 30 minutes in ${var.environment}.
+        Check for unbounded state or missing watermarks.
+        Severity: WARNING — Escalation: Slack
+      notify_on_ok: false
+      rearm: 1800

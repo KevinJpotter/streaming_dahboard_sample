@@ -1,0 +1,11 @@
+resources:
+  schemas:
+    monitoring:
+      catalog_name: ${var.catalog}
+      name: ${var.schema}
+      comment: Streaming monitoring tables for structured streaming observability
+      grants:
+        - principal: account users
+          privileges:
+            - USE_SCHEMA
+            - SELECT
