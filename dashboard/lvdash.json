@@ -9,77 +9,76 @@
             "name": "stream_status_table",
             "queries": [
               {
-                "name": "stream_overview_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_stream_overview"
+                  "datasetName": "ds_stream_overview",
+                  "fields": [
+                    {
+                      "name": "query_name",
+                      "expression": "`query_name`"
+                    },
+                    {
+                      "name": "stream_status",
+                      "expression": "`stream_status`"
+                    },
+                    {
+                      "name": "last_batch_ts",
+                      "expression": "`last_batch_ts`"
+                    },
+                    {
+                      "name": "uptime_hours",
+                      "expression": "`uptime_hours`"
+                    },
+                    {
+                      "name": "sla_breach_count",
+                      "expression": "`sla_breach_count`"
+                    },
+                    {
+                      "name": "last_error_ts",
+                      "expression": "`last_error_ts`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 3,
+              "version": 2,
               "widgetType": "table",
               "encodings": {
                 "columns": [
                   {
                     "fieldName": "query_name",
                     "displayName": "Stream",
-                    "type": "string"
+                    "displayAs": "string"
                   },
                   {
                     "fieldName": "stream_status",
                     "displayName": "Status",
-                    "type": "string"
+                    "displayAs": "string"
                   },
                   {
                     "fieldName": "last_batch_ts",
                     "displayName": "Last Batch",
-                    "type": "datetime"
+                    "displayAs": "datetime"
                   },
                   {
                     "fieldName": "uptime_hours",
                     "displayName": "Uptime (hrs)",
-                    "type": "number"
+                    "displayAs": "number"
                   },
                   {
                     "fieldName": "sla_breach_count",
                     "displayName": "SLA Breaches",
-                    "type": "number"
+                    "displayAs": "number"
                   },
                   {
                     "fieldName": "last_error_ts",
                     "displayName": "Last Error",
-                    "type": "datetime"
+                    "displayAs": "datetime"
                   }
                 ]
-              },
-              "conditionalFormatting": [
-                {
-                  "column": "stream_status",
-                  "rules": [
-                    {
-                      "condition": {
-                        "operator": "EQUAL",
-                        "operand": "ACTIVE"
-                      },
-                      "color": "green"
-                    },
-                    {
-                      "condition": {
-                        "operator": "EQUAL",
-                        "operand": "INACTIVE"
-                      },
-                      "color": "yellow"
-                    },
-                    {
-                      "condition": {
-                        "operator": "EQUAL",
-                        "operand": "ERROR"
-                      },
-                      "color": "red"
-                    }
-                  ]
-                }
-              ]
+              }
             }
           },
           "position": {
@@ -94,28 +93,27 @@
             "name": "active_streams_counter",
             "queries": [
               {
-                "name": "active_count_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_stream_overview"
+                  "datasetName": "ds_stream_overview",
+                  "fields": [
+                    {
+                      "name": "query_name",
+                      "expression": "`query_name`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 3,
+              "version": 2,
               "widgetType": "counter",
               "encodings": {
-                "value": {
+                "target": {
                   "fieldName": "query_name",
-                  "displayName": "Active Streams",
-                  "type": "quantitative",
-                  "aggregateType": "COUNT"
+                  "displayName": "Active Streams"
                 }
-              },
-              "filter": {
-                "fieldName": "stream_status",
-                "values": [
-                  "ACTIVE"
-                ]
               }
             }
           },
@@ -131,21 +129,26 @@
             "name": "sla_breach_counter",
             "queries": [
               {
-                "name": "breach_count_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_stream_overview"
+                  "datasetName": "ds_stream_overview",
+                  "fields": [
+                    {
+                      "name": "sla_breach_count",
+                      "expression": "`sla_breach_count`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 3,
+              "version": 2,
               "widgetType": "counter",
               "encodings": {
-                "value": {
+                "target": {
                   "fieldName": "sla_breach_count",
-                  "displayName": "Total SLA Breaches",
-                  "type": "quantitative",
-                  "aggregateType": "SUM"
+                  "displayName": "Total SLA Breaches"
                 }
               }
             }
@@ -159,31 +162,30 @@
         },
         {
           "widget": {
-            "name": "error_streams_counter",
+            "name": "uptime_counter",
             "queries": [
               {
-                "name": "error_count_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_stream_overview"
+                  "datasetName": "ds_stream_overview",
+                  "fields": [
+                    {
+                      "name": "uptime_hours",
+                      "expression": "`uptime_hours`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 3,
+              "version": 2,
               "widgetType": "counter",
               "encodings": {
-                "value": {
-                  "fieldName": "query_name",
-                  "displayName": "Errored Streams",
-                  "type": "quantitative",
-                  "aggregateType": "COUNT"
+                "target": {
+                  "fieldName": "uptime_hours",
+                  "displayName": "Max Uptime (hrs)"
                 }
-              },
-              "filter": {
-                "fieldName": "stream_status",
-                "values": [
-                  "ERROR"
-                ]
               }
             }
           },
@@ -205,38 +207,56 @@
             "name": "throughput_chart",
             "queries": [
               {
-                "name": "throughput_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_throughput_trends"
+                  "datasetName": "ds_throughput_trends",
+                  "fields": [
+                    {
+                      "name": "query_name",
+                      "expression": "`query_name`"
+                    },
+                    {
+                      "name": "time_bucket",
+                      "expression": "`time_bucket`"
+                    },
+                    {
+                      "name": "total_input_rows",
+                      "expression": "`total_input_rows`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
               "version": 3,
-              "widgetType": "area",
+              "widgetType": "bar",
               "encodings": {
                 "x": {
                   "fieldName": "time_bucket",
-                  "displayName": "Time",
-                  "type": "temporal",
+                  "displayName": "time_bucket",
                   "scale": {
-                    "type": "utc"
+                    "type": "temporal"
                   }
                 },
                 "y": {
-                  "fieldName": "avg_input_rows_per_sec",
-                  "displayName": "Input Rows/s",
-                  "type": "quantitative"
-                },
-                "y2": {
-                  "fieldName": "avg_processed_rows_per_sec",
-                  "displayName": "Processed Rows/s",
-                  "type": "quantitative"
+                  "fieldName": "total_input_rows",
+                  "displayName": "Total Input Rows",
+                  "scale": {
+                    "type": "quantitative"
+                  }
                 },
                 "color": {
                   "fieldName": "query_name",
-                  "type": "nominal"
+                  "displayName": "query_name",
+                  "scale": {
+                    "type": "categorical"
+                  }
                 }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Hourly Throughput by Stream"
               }
             }
           },
@@ -244,7 +264,7 @@
             "x": 0,
             "y": 0,
             "width": 6,
-            "height": 3
+            "height": 4
           }
         },
         {
@@ -252,9 +272,28 @@
             "name": "batch_duration_chart",
             "queries": [
               {
-                "name": "batch_dur_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_throughput_trends"
+                  "datasetName": "ds_throughput_trends",
+                  "fields": [
+                    {
+                      "name": "query_name",
+                      "expression": "`query_name`"
+                    },
+                    {
+                      "name": "time_bucket",
+                      "expression": "`time_bucket`"
+                    },
+                    {
+                      "name": "avg_batch_duration_ms",
+                      "expression": "`avg_batch_duration_ms`"
+                    },
+                    {
+                      "name": "max_batch_duration_ms",
+                      "expression": "`max_batch_duration_ms`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
@@ -264,65 +303,102 @@
               "encodings": {
                 "x": {
                   "fieldName": "time_bucket",
-                  "displayName": "Time",
-                  "type": "temporal"
+                  "displayName": "time_bucket",
+                  "scale": {
+                    "type": "temporal"
+                  }
                 },
                 "y": {
                   "fieldName": "avg_batch_duration_ms",
                   "displayName": "Avg Batch Duration (ms)",
-                  "type": "quantitative"
+                  "scale": {
+                    "type": "quantitative"
+                  }
                 },
                 "color": {
                   "fieldName": "query_name",
-                  "type": "nominal"
+                  "displayName": "query_name",
+                  "scale": {
+                    "type": "categorical"
+                  }
                 }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Batch Duration"
               }
             }
           },
           "position": {
             "x": 0,
-            "y": 3,
+            "y": 4,
             "width": 3,
-            "height": 3
+            "height": 4
           }
         },
         {
           "widget": {
-            "name": "watermark_delay_chart",
+            "name": "batch_count_chart",
             "queries": [
               {
-                "name": "watermark_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_throughput_trends"
+                  "datasetName": "ds_throughput_trends",
+                  "fields": [
+                    {
+                      "name": "query_name",
+                      "expression": "`query_name`"
+                    },
+                    {
+                      "name": "time_bucket",
+                      "expression": "`time_bucket`"
+                    },
+                    {
+                      "name": "batch_count",
+                      "expression": "`batch_count`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
               "version": 3,
-              "widgetType": "line",
+              "widgetType": "bar",
               "encodings": {
                 "x": {
                   "fieldName": "time_bucket",
-                  "displayName": "Time",
-                  "type": "temporal"
+                  "displayName": "time_bucket",
+                  "scale": {
+                    "type": "temporal"
+                  }
                 },
                 "y": {
-                  "fieldName": "avg_watermark_delay_sec",
-                  "displayName": "Watermark Delay (s)",
-                  "type": "quantitative"
+                  "fieldName": "batch_count",
+                  "displayName": "Batches",
+                  "scale": {
+                    "type": "quantitative"
+                  }
                 },
                 "color": {
                   "fieldName": "query_name",
-                  "type": "nominal"
+                  "displayName": "query_name",
+                  "scale": {
+                    "type": "categorical"
+                  }
                 }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Batches per Hour"
               }
             }
           },
           "position": {
             "x": 3,
-            "y": 3,
+            "y": 4,
             "width": 3,
-            "height": 3
+            "height": 4
           }
         }
       ]
@@ -333,12 +409,35 @@
       "layout": [
         {
           "widget": {
-            "name": "latency_percentiles_chart",
+            "name": "p50_latency_chart",
             "queries": [
               {
-                "name": "latency_pct_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_latency_sla"
+                  "datasetName": "ds_latency_sla",
+                  "fields": [
+                    {
+                      "name": "query_name",
+                      "expression": "`query_name`"
+                    },
+                    {
+                      "name": "time_bucket",
+                      "expression": "`time_bucket`"
+                    },
+                    {
+                      "name": "p50_latency_ms",
+                      "expression": "`p50_latency_ms`"
+                    },
+                    {
+                      "name": "p90_latency_ms",
+                      "expression": "`p90_latency_ms`"
+                    },
+                    {
+                      "name": "p99_latency_ms",
+                      "expression": "`p99_latency_ms`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
@@ -348,46 +447,62 @@
               "encodings": {
                 "x": {
                   "fieldName": "time_bucket",
-                  "displayName": "Time",
-                  "type": "temporal"
+                  "displayName": "time_bucket",
+                  "scale": {
+                    "type": "temporal"
+                  }
                 },
                 "y": {
                   "fieldName": "p50_latency_ms",
-                  "displayName": "P50 (ms)",
-                  "type": "quantitative"
+                  "displayName": "P50 Latency (ms)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
                 },
                 "color": {
                   "fieldName": "query_name",
-                  "type": "nominal"
+                  "displayName": "query_name",
+                  "scale": {
+                    "type": "categorical"
+                  }
                 }
               },
-              "layers": [
-                {
-                  "fieldName": "p90_latency_ms",
-                  "displayName": "P90 (ms)"
-                },
-                {
-                  "fieldName": "p99_latency_ms",
-                  "displayName": "P99 (ms)"
-                }
-              ]
+              "frame": {
+                "showTitle": true,
+                "title": "Latency Percentiles (Hourly)"
+              }
             }
           },
           "position": {
             "x": 0,
             "y": 0,
-            "width": 4,
+            "width": 6,
             "height": 4
           }
         },
         {
           "widget": {
-            "name": "breach_trend_chart",
+            "name": "breach_count_chart",
             "queries": [
               {
-                "name": "breach_trend_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_latency_sla"
+                  "datasetName": "ds_latency_sla",
+                  "fields": [
+                    {
+                      "name": "query_name",
+                      "expression": "`query_name`"
+                    },
+                    {
+                      "name": "time_bucket",
+                      "expression": "`time_bucket`"
+                    },
+                    {
+                      "name": "breach_count",
+                      "expression": "`breach_count`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
@@ -397,25 +512,101 @@
               "encodings": {
                 "x": {
                   "fieldName": "time_bucket",
-                  "displayName": "Time",
-                  "type": "temporal"
+                  "displayName": "time_bucket",
+                  "scale": {
+                    "type": "temporal"
+                  }
                 },
                 "y": {
                   "fieldName": "breach_count",
                   "displayName": "SLA Breaches",
-                  "type": "quantitative"
+                  "scale": {
+                    "type": "quantitative"
+                  }
                 },
                 "color": {
                   "fieldName": "query_name",
-                  "type": "nominal"
+                  "displayName": "query_name",
+                  "scale": {
+                    "type": "categorical"
+                  }
                 }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "SLA Breach Count per Hour"
               }
             }
           },
           "position": {
-            "x": 4,
-            "y": 0,
-            "width": 2,
+            "x": 0,
+            "y": 4,
+            "width": 3,
+            "height": 4
+          }
+        },
+        {
+          "widget": {
+            "name": "breach_pct_chart",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_latency_sla",
+                  "fields": [
+                    {
+                      "name": "query_name",
+                      "expression": "`query_name`"
+                    },
+                    {
+                      "name": "time_bucket",
+                      "expression": "`time_bucket`"
+                    },
+                    {
+                      "name": "breach_percentage",
+                      "expression": "`breach_percentage`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "time_bucket",
+                  "displayName": "time_bucket",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "breach_percentage",
+                  "displayName": "Breach %",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "query_name",
+                  "displayName": "query_name",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "SLA Breach Rate (%)"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 4,
+            "width": 3,
             "height": 4
           }
         }
@@ -427,12 +618,27 @@
       "layout": [
         {
           "widget": {
-            "name": "backpressure_ratio_chart",
+            "name": "bp_ratio_chart",
             "queries": [
               {
-                "name": "bp_ratio_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_backpressure"
+                  "datasetName": "ds_backpressure",
+                  "fields": [
+                    {
+                      "name": "query_name",
+                      "expression": "`query_name`"
+                    },
+                    {
+                      "name": "timestamp",
+                      "expression": "`timestamp`"
+                    },
+                    {
+                      "name": "backpressure_ratio",
+                      "expression": "`backpressure_ratio`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
@@ -442,108 +648,111 @@
               "encodings": {
                 "x": {
                   "fieldName": "timestamp",
-                  "displayName": "Time",
-                  "type": "temporal"
+                  "displayName": "timestamp",
+                  "scale": {
+                    "type": "temporal"
+                  }
                 },
                 "y": {
                   "fieldName": "backpressure_ratio",
-                  "displayName": "Input/Processed Ratio",
-                  "type": "quantitative"
+                  "displayName": "Input / Processed Ratio",
+                  "scale": {
+                    "type": "quantitative"
+                  }
                 },
                 "color": {
                   "fieldName": "query_name",
-                  "type": "nominal"
+                  "displayName": "query_name",
+                  "scale": {
+                    "type": "categorical"
+                  }
                 }
               },
-              "referenceLines": [
-                {
-                  "value": 1.0,
-                  "label": "Backpressure Threshold",
-                  "color": "red",
-                  "style": "dashed"
-                }
-              ]
+              "frame": {
+                "showTitle": true,
+                "title": "Backpressure Ratio Over Time"
+              }
             }
           },
           "position": {
             "x": 0,
             "y": 0,
-            "width": 4,
+            "width": 6,
             "height": 4
           }
         },
         {
           "widget": {
-            "name": "backpressure_status_table",
+            "name": "bp_status_table",
             "queries": [
               {
-                "name": "bp_status_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_backpressure"
+                  "datasetName": "ds_backpressure",
+                  "fields": [
+                    {
+                      "name": "query_name",
+                      "expression": "`query_name`"
+                    },
+                    {
+                      "name": "timestamp",
+                      "expression": "`timestamp`"
+                    },
+                    {
+                      "name": "backpressure_ratio",
+                      "expression": "`backpressure_ratio`"
+                    },
+                    {
+                      "name": "sustained_count",
+                      "expression": "`sustained_count`"
+                    },
+                    {
+                      "name": "backpressure_status",
+                      "expression": "`backpressure_status`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
-              "version": 3,
+              "version": 2,
               "widgetType": "table",
               "encodings": {
                 "columns": [
                   {
                     "fieldName": "query_name",
                     "displayName": "Stream",
-                    "type": "string"
+                    "displayAs": "string"
+                  },
+                  {
+                    "fieldName": "timestamp",
+                    "displayName": "Time",
+                    "displayAs": "datetime"
                   },
                   {
                     "fieldName": "backpressure_ratio",
                     "displayName": "Ratio",
-                    "type": "number"
+                    "displayAs": "number"
                   },
                   {
                     "fieldName": "sustained_count",
                     "displayName": "Sustained Batches",
-                    "type": "number"
+                    "displayAs": "number"
                   },
                   {
                     "fieldName": "backpressure_status",
                     "displayName": "Status",
-                    "type": "string"
+                    "displayAs": "string"
                   }
                 ]
-              },
-              "conditionalFormatting": [
-                {
-                  "column": "backpressure_status",
-                  "rules": [
-                    {
-                      "condition": {
-                        "operator": "EQUAL",
-                        "operand": "OK"
-                      },
-                      "color": "green"
-                    },
-                    {
-                      "condition": {
-                        "operator": "EQUAL",
-                        "operand": "WARNING"
-                      },
-                      "color": "yellow"
-                    },
-                    {
-                      "condition": {
-                        "operator": "EQUAL",
-                        "operand": "CRITICAL"
-                      },
-                      "color": "red"
-                    }
-                  ]
-                }
-              ]
+              }
             }
           },
           "position": {
-            "x": 4,
-            "y": 0,
-            "width": 2,
+            "x": 0,
+            "y": 4,
+            "width": 6,
             "height": 4
           }
         }
@@ -558,9 +767,24 @@
             "name": "state_memory_chart",
             "queries": [
               {
-                "name": "state_mem_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_state_store"
+                  "datasetName": "ds_state_store",
+                  "fields": [
+                    {
+                      "name": "query_name",
+                      "expression": "`query_name`"
+                    },
+                    {
+                      "name": "time_bucket",
+                      "expression": "`time_bucket`"
+                    },
+                    {
+                      "name": "state_memory_mb",
+                      "expression": "`state_memory_mb`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
@@ -569,19 +793,30 @@
               "widgetType": "area",
               "encodings": {
                 "x": {
-                  "fieldName": "timestamp",
-                  "displayName": "Time",
-                  "type": "temporal"
+                  "fieldName": "time_bucket",
+                  "displayName": "time_bucket",
+                  "scale": {
+                    "type": "temporal"
+                  }
                 },
                 "y": {
                   "fieldName": "state_memory_mb",
                   "displayName": "State Memory (MB)",
-                  "type": "quantitative"
+                  "scale": {
+                    "type": "quantitative"
+                  }
                 },
                 "color": {
                   "fieldName": "query_name",
-                  "type": "nominal"
+                  "displayName": "query_name",
+                  "scale": {
+                    "type": "categorical"
+                  }
                 }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "State Memory (Hourly Max)"
               }
             }
           },
@@ -597,9 +832,24 @@
             "name": "state_rows_chart",
             "queries": [
               {
-                "name": "state_rows_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_state_store"
+                  "datasetName": "ds_state_store",
+                  "fields": [
+                    {
+                      "name": "query_name",
+                      "expression": "`query_name`"
+                    },
+                    {
+                      "name": "time_bucket",
+                      "expression": "`time_bucket`"
+                    },
+                    {
+                      "name": "state_rows_total",
+                      "expression": "`state_rows_total`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
@@ -608,19 +858,30 @@
               "widgetType": "line",
               "encodings": {
                 "x": {
-                  "fieldName": "timestamp",
-                  "displayName": "Time",
-                  "type": "temporal"
+                  "fieldName": "time_bucket",
+                  "displayName": "time_bucket",
+                  "scale": {
+                    "type": "temporal"
+                  }
                 },
                 "y": {
                   "fieldName": "state_rows_total",
                   "displayName": "State Rows",
-                  "type": "quantitative"
+                  "scale": {
+                    "type": "quantitative"
+                  }
                 },
                 "color": {
                   "fieldName": "query_name",
-                  "type": "nominal"
+                  "displayName": "query_name",
+                  "scale": {
+                    "type": "categorical"
+                  }
                 }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "State Row Count (Hourly Max)"
               }
             }
           },
@@ -642,9 +903,24 @@
             "name": "duplicate_rate_chart",
             "queries": [
               {
-                "name": "dup_rate_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_data_quality"
+                  "datasetName": "ds_data_quality",
+                  "fields": [
+                    {
+                      "name": "query_name",
+                      "expression": "`query_name`"
+                    },
+                    {
+                      "name": "time_bucket",
+                      "expression": "`time_bucket`"
+                    },
+                    {
+                      "name": "avg_duplicate_rate_pct",
+                      "expression": "`avg_duplicate_rate_pct`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
@@ -654,18 +930,29 @@
               "encodings": {
                 "x": {
                   "fieldName": "time_bucket",
-                  "displayName": "Time",
-                  "type": "temporal"
+                  "displayName": "time_bucket",
+                  "scale": {
+                    "type": "temporal"
+                  }
                 },
                 "y": {
                   "fieldName": "avg_duplicate_rate_pct",
                   "displayName": "Duplicate Rate (%)",
-                  "type": "quantitative"
+                  "scale": {
+                    "type": "quantitative"
+                  }
                 },
                 "color": {
                   "fieldName": "query_name",
-                  "type": "nominal"
+                  "displayName": "query_name",
+                  "scale": {
+                    "type": "categorical"
+                  }
                 }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Duplicate Rate"
               }
             }
           },
@@ -673,7 +960,7 @@
             "x": 0,
             "y": 0,
             "width": 3,
-            "height": 3
+            "height": 4
           }
         },
         {
@@ -681,9 +968,24 @@
             "name": "dropped_records_chart",
             "queries": [
               {
-                "name": "dropped_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_data_quality"
+                  "datasetName": "ds_data_quality",
+                  "fields": [
+                    {
+                      "name": "query_name",
+                      "expression": "`query_name`"
+                    },
+                    {
+                      "name": "time_bucket",
+                      "expression": "`time_bucket`"
+                    },
+                    {
+                      "name": "total_dropped_records",
+                      "expression": "`total_dropped_records`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
@@ -693,18 +995,29 @@
               "encodings": {
                 "x": {
                   "fieldName": "time_bucket",
-                  "displayName": "Time",
-                  "type": "temporal"
+                  "displayName": "time_bucket",
+                  "scale": {
+                    "type": "temporal"
+                  }
                 },
                 "y": {
                   "fieldName": "total_dropped_records",
                   "displayName": "Dropped Records",
-                  "type": "quantitative"
+                  "scale": {
+                    "type": "quantitative"
+                  }
                 },
                 "color": {
                   "fieldName": "query_name",
-                  "type": "nominal"
+                  "displayName": "query_name",
+                  "scale": {
+                    "type": "categorical"
+                  }
                 }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Dropped Records per Hour"
               }
             }
           },
@@ -712,7 +1025,7 @@
             "x": 3,
             "y": 0,
             "width": 3,
-            "height": 3
+            "height": 4
           }
         },
         {
@@ -720,9 +1033,24 @@
             "name": "late_records_chart",
             "queries": [
               {
-                "name": "late_records_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_data_quality"
+                  "datasetName": "ds_data_quality",
+                  "fields": [
+                    {
+                      "name": "query_name",
+                      "expression": "`query_name`"
+                    },
+                    {
+                      "name": "time_bucket",
+                      "expression": "`time_bucket`"
+                    },
+                    {
+                      "name": "avg_late_record_pct",
+                      "expression": "`avg_late_record_pct`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
@@ -732,26 +1060,37 @@
               "encodings": {
                 "x": {
                   "fieldName": "time_bucket",
-                  "displayName": "Time",
-                  "type": "temporal"
+                  "displayName": "time_bucket",
+                  "scale": {
+                    "type": "temporal"
+                  }
                 },
                 "y": {
                   "fieldName": "avg_late_record_pct",
                   "displayName": "Late Records (%)",
-                  "type": "quantitative"
+                  "scale": {
+                    "type": "quantitative"
+                  }
                 },
                 "color": {
                   "fieldName": "query_name",
-                  "type": "nominal"
+                  "displayName": "query_name",
+                  "scale": {
+                    "type": "categorical"
+                  }
                 }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Late Record Percentage"
               }
             }
           },
           "position": {
             "x": 0,
-            "y": 3,
+            "y": 4,
             "width": 3,
-            "height": 3
+            "height": 4
           }
         },
         {
@@ -759,9 +1098,24 @@
             "name": "schema_changes_chart",
             "queries": [
               {
-                "name": "schema_change_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_data_quality"
+                  "datasetName": "ds_data_quality",
+                  "fields": [
+                    {
+                      "name": "query_name",
+                      "expression": "`query_name`"
+                    },
+                    {
+                      "name": "time_bucket",
+                      "expression": "`time_bucket`"
+                    },
+                    {
+                      "name": "schema_change_count",
+                      "expression": "`schema_change_count`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
@@ -771,26 +1125,37 @@
               "encodings": {
                 "x": {
                   "fieldName": "time_bucket",
-                  "displayName": "Time",
-                  "type": "temporal"
+                  "displayName": "time_bucket",
+                  "scale": {
+                    "type": "temporal"
+                  }
                 },
                 "y": {
                   "fieldName": "schema_change_count",
                   "displayName": "Schema Changes",
-                  "type": "quantitative"
+                  "scale": {
+                    "type": "quantitative"
+                  }
                 },
                 "color": {
                   "fieldName": "query_name",
-                  "type": "nominal"
+                  "displayName": "query_name",
+                  "scale": {
+                    "type": "categorical"
+                  }
                 }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Schema Change Events"
               }
             }
           },
           "position": {
             "x": 3,
-            "y": 3,
+            "y": 4,
             "width": 3,
-            "height": 3
+            "height": 4
           }
         }
       ]
@@ -801,12 +1166,27 @@
       "layout": [
         {
           "widget": {
-            "name": "cpu_memory_chart",
+            "name": "cpu_chart",
             "queries": [
               {
-                "name": "cpu_mem_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_infrastructure"
+                  "datasetName": "ds_infrastructure",
+                  "fields": [
+                    {
+                      "name": "cluster_id",
+                      "expression": "`cluster_id`"
+                    },
+                    {
+                      "name": "time_bucket",
+                      "expression": "`time_bucket`"
+                    },
+                    {
+                      "name": "avg_cpu_pct",
+                      "expression": "`avg_cpu_pct`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
@@ -816,42 +1196,62 @@
               "encodings": {
                 "x": {
                   "fieldName": "time_bucket",
-                  "displayName": "Time",
-                  "type": "temporal"
+                  "displayName": "time_bucket",
+                  "scale": {
+                    "type": "temporal"
+                  }
                 },
                 "y": {
                   "fieldName": "avg_cpu_pct",
                   "displayName": "CPU %",
-                  "type": "quantitative"
+                  "scale": {
+                    "type": "quantitative"
+                  }
                 },
                 "color": {
                   "fieldName": "cluster_id",
-                  "type": "nominal"
+                  "displayName": "cluster_id",
+                  "scale": {
+                    "type": "categorical"
+                  }
                 }
               },
-              "layers": [
-                {
-                  "fieldName": "avg_memory_pct",
-                  "displayName": "Memory %"
-                }
-              ]
+              "frame": {
+                "showTitle": true,
+                "title": "CPU Usage"
+              }
             }
           },
           "position": {
             "x": 0,
             "y": 0,
             "width": 3,
-            "height": 3
+            "height": 4
           }
         },
         {
           "widget": {
-            "name": "executor_count_chart",
+            "name": "memory_chart",
             "queries": [
               {
-                "name": "executor_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_infrastructure"
+                  "datasetName": "ds_infrastructure",
+                  "fields": [
+                    {
+                      "name": "cluster_id",
+                      "expression": "`cluster_id`"
+                    },
+                    {
+                      "name": "time_bucket",
+                      "expression": "`time_bucket`"
+                    },
+                    {
+                      "name": "avg_memory_pct",
+                      "expression": "`avg_memory_pct`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
@@ -861,18 +1261,29 @@
               "encodings": {
                 "x": {
                   "fieldName": "time_bucket",
-                  "displayName": "Time",
-                  "type": "temporal"
+                  "displayName": "time_bucket",
+                  "scale": {
+                    "type": "temporal"
+                  }
                 },
                 "y": {
-                  "fieldName": "avg_executor_count",
-                  "displayName": "Executors",
-                  "type": "quantitative"
+                  "fieldName": "avg_memory_pct",
+                  "displayName": "Memory %",
+                  "scale": {
+                    "type": "quantitative"
+                  }
                 },
                 "color": {
                   "fieldName": "cluster_id",
-                  "type": "nominal"
+                  "displayName": "cluster_id",
+                  "scale": {
+                    "type": "categorical"
+                  }
                 }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Memory Usage"
               }
             }
           },
@@ -880,56 +1291,97 @@
             "x": 3,
             "y": 0,
             "width": 3,
-            "height": 3
+            "height": 4
           }
         },
         {
           "widget": {
-            "name": "dbu_consumption_chart",
+            "name": "executor_chart",
             "queries": [
               {
-                "name": "dbu_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_infrastructure"
+                  "datasetName": "ds_infrastructure",
+                  "fields": [
+                    {
+                      "name": "cluster_id",
+                      "expression": "`cluster_id`"
+                    },
+                    {
+                      "name": "time_bucket",
+                      "expression": "`time_bucket`"
+                    },
+                    {
+                      "name": "avg_executor_count",
+                      "expression": "`avg_executor_count`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
             "spec": {
               "version": 3,
-              "widgetType": "bar",
+              "widgetType": "line",
               "encodings": {
                 "x": {
                   "fieldName": "time_bucket",
-                  "displayName": "Time",
-                  "type": "temporal"
+                  "displayName": "time_bucket",
+                  "scale": {
+                    "type": "temporal"
+                  }
                 },
                 "y": {
-                  "fieldName": "total_dbu",
-                  "displayName": "DBU Consumption",
-                  "type": "quantitative"
+                  "fieldName": "avg_executor_count",
+                  "displayName": "Executors",
+                  "scale": {
+                    "type": "quantitative"
+                  }
                 },
                 "color": {
                   "fieldName": "cluster_id",
-                  "type": "nominal"
+                  "displayName": "cluster_id",
+                  "scale": {
+                    "type": "categorical"
+                  }
                 }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Executor Count"
               }
             }
           },
           "position": {
             "x": 0,
-            "y": 3,
+            "y": 4,
             "width": 3,
-            "height": 3
+            "height": 4
           }
         },
         {
           "widget": {
-            "name": "autoscale_events_chart",
+            "name": "dbu_chart",
             "queries": [
               {
-                "name": "autoscale_query",
+                "name": "main_query",
                 "query": {
-                  "datasetName": "ds_infrastructure"
+                  "datasetName": "ds_infrastructure",
+                  "fields": [
+                    {
+                      "name": "cluster_id",
+                      "expression": "`cluster_id`"
+                    },
+                    {
+                      "name": "time_bucket",
+                      "expression": "`time_bucket`"
+                    },
+                    {
+                      "name": "total_dbu",
+                      "expression": "`total_dbu`"
+                    }
+                  ],
+                  "disaggregated": false
                 }
               }
             ],
@@ -939,26 +1391,37 @@
               "encodings": {
                 "x": {
                   "fieldName": "time_bucket",
-                  "displayName": "Time",
-                  "type": "temporal"
+                  "displayName": "time_bucket",
+                  "scale": {
+                    "type": "temporal"
+                  }
                 },
                 "y": {
-                  "fieldName": "scale_up_count",
-                  "displayName": "Scale Up Events",
-                  "type": "quantitative"
+                  "fieldName": "total_dbu",
+                  "displayName": "DBU Consumption",
+                  "scale": {
+                    "type": "quantitative"
+                  }
                 },
                 "color": {
                   "fieldName": "cluster_id",
-                  "type": "nominal"
+                  "displayName": "cluster_id",
+                  "scale": {
+                    "type": "categorical"
+                  }
                 }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "DBU per Hour"
               }
             }
           },
           "position": {
             "x": 3,
-            "y": 3,
+            "y": 4,
             "width": 3,
-            "height": 3
+            "height": 4
           }
         }
       ]
@@ -968,7 +1431,7 @@
     {
       "name": "ds_stream_overview",
       "displayName": "Stream Overview",
-      "query": "WITH latest_batch AS (\n  SELECT\n    details:stream_progress.id::STRING AS query_id,\n    details:stream_progress.name::STRING AS query_name,\n    MAX(timestamp) AS last_batch_ts,\n    MAX(details:stream_progress.batchId::BIGINT) AS last_batch_id,\n    MIN(timestamp) AS first_batch_ts\n  FROM streaming_metrics\n  WHERE CAST(timestamp AS DATE) >= current_date() - MAKE_INTERVAL(0, 0, 0, :time_range_days)\n  GROUP BY details:stream_progress.id::STRING, details:stream_progress.name::STRING\n),\nerror_status AS (\n  SELECT query_id, MAX(timestamp) AS last_error_ts\n  FROM stream_errors\n  WHERE CAST(timestamp AS DATE) >= current_date() - MAKE_INTERVAL(0, 0, 0, :time_range_days)\n  GROUP BY query_id\n),\nsla_breaches AS (\n  SELECT query_id, COUNT(*) AS breach_count\n  FROM sla_latency_metrics\n  WHERE sla_breach_flag = true\n    AND CAST(timestamp AS DATE) >= current_date() - MAKE_INTERVAL(0, 0, 0, :time_range_days)\n  GROUP BY query_id\n)\nSELECT\n  lb.query_id, lb.query_name,\n  CASE\n    WHEN es.last_error_ts > lb.last_batch_ts THEN 'ERROR'\n    WHEN lb.last_batch_ts < current_timestamp() - INTERVAL 10 MINUTE THEN 'INACTIVE'\n    ELSE 'ACTIVE'\n  END AS stream_status,\n  lb.last_batch_ts, lb.last_batch_id, lb.first_batch_ts,\n  CAST((unix_timestamp(lb.last_batch_ts) - unix_timestamp(lb.first_batch_ts)) / 3600.0 AS DECIMAL(10,1)) AS uptime_hours,\n  COALESCE(sb.breach_count, 0) AS sla_breach_count,\n  CASE WHEN COALESCE(sb.breach_count, 0) > 0 THEN true ELSE false END AS has_sla_breaches,\n  es.last_error_ts\nFROM latest_batch lb\nLEFT JOIN error_status es ON lb.query_id = es.query_id\nLEFT JOIN sla_breaches sb ON lb.query_id = sb.query_id\nORDER BY lb.query_name",
+      "query": "WITH latest_batch AS (\n  SELECT\n    details:stream_progress.id::STRING AS query_id,\n    details:stream_progress.name::STRING AS query_name,\n    MAX(timestamp) AS last_batch_ts,\n    MAX(details:stream_progress.batchId::BIGINT) AS last_batch_id,\n    MIN(timestamp) AS first_batch_ts\n  FROM streaming_metrics\n  WHERE CAST(timestamp AS DATE) >= current_date() - MAKE_INTERVAL(0, 0, 0, :time_range_days)\n  GROUP BY details:stream_progress.id::STRING, details:stream_progress.name::STRING\n),\nerror_status AS (\n  SELECT query_id, MAX(timestamp) AS last_error_ts\n  FROM stream_errors\n  WHERE CAST(timestamp AS DATE) >= current_date() - MAKE_INTERVAL(0, 0, 0, :time_range_days)\n  GROUP BY query_id\n),\nsla_breaches AS (\n  SELECT query_id, COUNT(*) AS breach_count\n  FROM sla_latency_metrics\n  WHERE sla_breach_flag = true\n    AND CAST(timestamp AS DATE) >= current_date() - MAKE_INTERVAL(0, 0, 0, :time_range_days)\n  GROUP BY query_id\n)\nSELECT\n  lb.query_name,\n  CASE\n    WHEN es.last_error_ts > lb.last_batch_ts THEN 'ERROR'\n    WHEN lb.last_batch_ts < current_timestamp() - INTERVAL 10 MINUTE THEN 'INACTIVE'\n    ELSE 'ACTIVE'\n  END AS stream_status,\n  lb.last_batch_ts,\n  lb.last_batch_id,\n  CAST((unix_timestamp(lb.last_batch_ts) - unix_timestamp(lb.first_batch_ts)) / 3600.0 AS DECIMAL(10,1)) AS uptime_hours,\n  COALESCE(sb.breach_count, 0) AS sla_breach_count,\n  es.last_error_ts\nFROM latest_batch lb\nLEFT JOIN error_status es ON lb.query_id = es.query_id\nLEFT JOIN sla_breaches sb ON lb.query_id = sb.query_id\nORDER BY lb.query_name",
       "parameters": [
         {
           "keyword": "time_range_days",
@@ -990,7 +1453,7 @@
     {
       "name": "ds_throughput_trends",
       "displayName": "Throughput Trends",
-      "query": "SELECT\n  details:stream_progress.name::STRING AS query_name,\n  window(timestamp, '1 minute').start AS time_bucket,\n  ROUND(AVG(details:stream_progress.inputRowsPerSecond::DOUBLE), 2) AS avg_input_rows_per_sec,\n  ROUND(AVG(details:stream_progress.processedRowsPerSecond::DOUBLE), 2) AS avg_processed_rows_per_sec,\n  ROUND(AVG(details:stream_progress.batchDuration::BIGINT), 0) AS avg_batch_duration_ms,\n  MAX(details:stream_progress.batchDuration::BIGINT) AS max_batch_duration_ms,\n  SUM(details:stream_progress.numInputRows::BIGINT) AS total_input_rows,\n  ROUND(AVG(unix_timestamp(timestamp) - unix_timestamp(details:stream_progress.eventTime.watermark::TIMESTAMP)), 0) AS avg_watermark_delay_sec\nFROM streaming_metrics\nWHERE CAST(timestamp AS DATE) >= current_date() - MAKE_INTERVAL(0, 0, 0, :time_range_days)\nGROUP BY details:stream_progress.name::STRING, window(timestamp, '1 minute').start\nORDER BY query_name, time_bucket",
+      "query": "SELECT\n  details:stream_progress.name::STRING AS query_name,\n  date_trunc('HOUR', timestamp) AS time_bucket,\n  ROUND(AVG(details:stream_progress.inputRowsPerSecond::DOUBLE), 2) AS avg_input_rows_per_sec,\n  ROUND(AVG(details:stream_progress.processedRowsPerSecond::DOUBLE), 2) AS avg_processed_rows_per_sec,\n  ROUND(AVG(details:stream_progress.batchDuration::BIGINT), 0) AS avg_batch_duration_ms,\n  MAX(details:stream_progress.batchDuration::BIGINT) AS max_batch_duration_ms,\n  SUM(details:stream_progress.numInputRows::BIGINT) AS total_input_rows,\n  COUNT(*) AS batch_count\nFROM streaming_metrics\nWHERE CAST(timestamp AS DATE) >= current_date() - MAKE_INTERVAL(0, 0, 0, :time_range_days)\nGROUP BY details:stream_progress.name::STRING, date_trunc('HOUR', timestamp)\nORDER BY query_name, time_bucket",
       "parameters": [
         {
           "keyword": "time_range_days",
@@ -1012,7 +1475,7 @@
     {
       "name": "ds_latency_sla",
       "displayName": "Latency & SLA",
-      "query": "WITH latency_stats AS (\n  SELECT\n    query_name,\n    window(timestamp, '5 minutes').start AS time_bucket,\n    PERCENTILE_APPROX(latency_ms, 0.50) AS p50_latency_ms,\n    PERCENTILE_APPROX(latency_ms, 0.90) AS p90_latency_ms,\n    PERCENTILE_APPROX(latency_ms, 0.99) AS p99_latency_ms,\n    MAX(max_latency) AS max_latency_ms,\n    COUNT(*) AS batch_count,\n    SUM(CASE WHEN sla_breach_flag THEN 1 ELSE 0 END) AS breach_count,\n    sla_threshold_ms\n  FROM sla_latency_metrics\n  WHERE CAST(timestamp AS DATE) >= current_date() - MAKE_INTERVAL(0, 0, 0, :time_range_days)\n    AND latency_ms IS NOT NULL\n  GROUP BY query_name, window(timestamp, '5 minutes').start, sla_threshold_ms\n)\nSELECT\n  query_name, time_bucket, p50_latency_ms, p90_latency_ms, p99_latency_ms, max_latency_ms,\n  breach_count, batch_count,\n  ROUND(100.0 * breach_count / batch_count, 2) AS breach_percentage,\n  sla_threshold_ms\nFROM latency_stats\nORDER BY query_name, time_bucket",
+      "query": "SELECT\n  query_name,\n  date_trunc('HOUR', timestamp) AS time_bucket,\n  PERCENTILE_APPROX(latency_ms, 0.50) AS p50_latency_ms,\n  PERCENTILE_APPROX(latency_ms, 0.90) AS p90_latency_ms,\n  PERCENTILE_APPROX(latency_ms, 0.99) AS p99_latency_ms,\n  MAX(max_latency) AS max_latency_ms,\n  COUNT(*) AS batch_count,\n  SUM(CASE WHEN sla_breach_flag THEN 1 ELSE 0 END) AS breach_count,\n  ROUND(100.0 * SUM(CASE WHEN sla_breach_flag THEN 1 ELSE 0 END) / COUNT(*), 2) AS breach_percentage\nFROM sla_latency_metrics\nWHERE CAST(timestamp AS DATE) >= current_date() - MAKE_INTERVAL(0, 0, 0, :time_range_days)\n  AND latency_ms IS NOT NULL\nGROUP BY query_name, date_trunc('HOUR', timestamp)\nORDER BY query_name, time_bucket",
       "parameters": [
         {
           "keyword": "time_range_days",
@@ -1034,7 +1497,7 @@
     {
       "name": "ds_backpressure",
       "displayName": "Backpressure Detection",
-      "query": "WITH batch_ratios AS (\n  SELECT\n    details:stream_progress.id::STRING AS query_id,\n    details:stream_progress.name::STRING AS query_name,\n    details:stream_progress.batchId::BIGINT AS batch_id,\n    timestamp,\n    details:stream_progress.inputRowsPerSecond::DOUBLE AS input_rows_per_second,\n    details:stream_progress.processedRowsPerSecond::DOUBLE AS processed_rows_per_second,\n    CASE\n      WHEN details:stream_progress.processedRowsPerSecond::DOUBLE > 0\n      THEN ROUND(details:stream_progress.inputRowsPerSecond::DOUBLE / details:stream_progress.processedRowsPerSecond::DOUBLE, 3)\n      ELSE NULL\n    END AS backpressure_ratio,\n    CASE\n      WHEN details:stream_progress.inputRowsPerSecond::DOUBLE > details:stream_progress.processedRowsPerSecond::DOUBLE THEN 1\n      ELSE 0\n    END AS is_backpressured\n  FROM streaming_metrics\n  WHERE CAST(timestamp AS DATE) >= current_date() - MAKE_INTERVAL(0, 0, 0, :time_range_days)\n),\nwindowed AS (\n  SELECT *,\n    SUM(is_backpressured) OVER (PARTITION BY query_id ORDER BY batch_id ROWS BETWEEN 4 PRECEDING AND CURRENT ROW) AS sustained_count\n  FROM batch_ratios\n)\nSELECT\n  query_name, batch_id, timestamp, input_rows_per_second, processed_rows_per_second,\n  backpressure_ratio, sustained_count,\n  CASE WHEN sustained_count >= 5 THEN 'CRITICAL' WHEN sustained_count >= 3 THEN 'WARNING' ELSE 'OK' END AS backpressure_status\nFROM windowed\nORDER BY query_name, batch_id DESC",
+      "query": "WITH batch_ratios AS (\n  SELECT\n    details:stream_progress.id::STRING AS query_id,\n    details:stream_progress.name::STRING AS query_name,\n    details:stream_progress.batchId::BIGINT AS batch_id,\n    timestamp,\n    ROUND(details:stream_progress.inputRowsPerSecond::DOUBLE, 2) AS input_rows_per_second,\n    ROUND(details:stream_progress.processedRowsPerSecond::DOUBLE, 2) AS processed_rows_per_second,\n    CASE\n      WHEN details:stream_progress.processedRowsPerSecond::DOUBLE > 0\n      THEN ROUND(details:stream_progress.inputRowsPerSecond::DOUBLE / details:stream_progress.processedRowsPerSecond::DOUBLE, 3)\n      ELSE NULL\n    END AS backpressure_ratio,\n    CASE\n      WHEN details:stream_progress.inputRowsPerSecond::DOUBLE > details:stream_progress.processedRowsPerSecond::DOUBLE THEN 1\n      ELSE 0\n    END AS is_backpressured\n  FROM streaming_metrics\n  WHERE CAST(timestamp AS DATE) >= current_date() - MAKE_INTERVAL(0, 0, 0, :time_range_days)\n),\nwindowed AS (\n  SELECT *,\n    SUM(is_backpressured) OVER (PARTITION BY query_id ORDER BY batch_id ROWS BETWEEN 4 PRECEDING AND CURRENT ROW) AS sustained_count\n  FROM batch_ratios\n)\nSELECT\n  query_name, batch_id, timestamp,\n  input_rows_per_second, processed_rows_per_second,\n  backpressure_ratio, sustained_count,\n  CASE WHEN sustained_count >= 5 THEN 'CRITICAL' WHEN sustained_count >= 3 THEN 'WARNING' ELSE 'OK' END AS backpressure_status\nFROM windowed\nORDER BY query_name, batch_id DESC",
       "parameters": [
         {
           "keyword": "time_range_days",
@@ -1056,7 +1519,7 @@
     {
       "name": "ds_state_store",
       "displayName": "State Store Health",
-      "query": "WITH state_data AS (\n  SELECT\n    details:stream_progress.name::STRING AS query_name,\n    details:stream_progress.id::STRING AS query_id,\n    timestamp,\n    details:stream_progress.batchId::BIGINT AS batch_id,\n    AGGREGATE(from_json(details:stream_progress.stateOperators, 'ARRAY<STRUCT<memoryUsedBytes:BIGINT, numRowsTotal:BIGINT>>'), CAST(0 AS BIGINT), (acc, x) -> acc + COALESCE(x.memoryUsedBytes, 0)) AS state_operator_memory_bytes,\n    AGGREGATE(from_json(details:stream_progress.stateOperators, 'ARRAY<STRUCT<memoryUsedBytes:BIGINT, numRowsTotal:BIGINT>>'), CAST(0 AS BIGINT), (acc, x) -> acc + COALESCE(x.numRowsTotal, 0)) AS state_rows_total\n  FROM streaming_metrics\n  WHERE CAST(timestamp AS DATE) >= current_date() - MAKE_INTERVAL(0, 0, 0, :time_range_days)\n),\nwith_lag AS (\n  SELECT query_name, timestamp, batch_id, state_operator_memory_bytes, state_rows_total,\n    ROUND(state_operator_memory_bytes / (1024.0 * 1024.0), 2) AS state_memory_mb,\n    LAG(state_operator_memory_bytes) OVER (PARTITION BY query_id ORDER BY batch_id) AS prev_memory_bytes\n  FROM state_data\n  WHERE state_operator_memory_bytes > 0\n)\nSELECT query_name, timestamp, batch_id, state_memory_mb, state_rows_total,\n  CASE WHEN prev_memory_bytes > 0 THEN ROUND(100.0 * (state_operator_memory_bytes - prev_memory_bytes) / prev_memory_bytes, 2) ELSE 0 END AS memory_growth_pct\nFROM with_lag\nORDER BY query_name, batch_id",
+      "query": "WITH state_data AS (\n  SELECT\n    details:stream_progress.name::STRING AS query_name,\n    details:stream_progress.id::STRING AS query_id,\n    date_trunc('HOUR', timestamp) AS time_bucket,\n    MAX(AGGREGATE(from_json(details:stream_progress.stateOperators, 'ARRAY<STRUCT<memoryUsedBytes:BIGINT, numRowsTotal:BIGINT>>'), CAST(0 AS BIGINT), (acc, x) -> acc + COALESCE(x.memoryUsedBytes, 0))) AS state_memory_bytes,\n    MAX(AGGREGATE(from_json(details:stream_progress.stateOperators, 'ARRAY<STRUCT<memoryUsedBytes:BIGINT, numRowsTotal:BIGINT>>'), CAST(0 AS BIGINT), (acc, x) -> acc + COALESCE(x.numRowsTotal, 0))) AS state_rows_total\n  FROM streaming_metrics\n  WHERE CAST(timestamp AS DATE) >= current_date() - MAKE_INTERVAL(0, 0, 0, :time_range_days)\n  GROUP BY details:stream_progress.name::STRING, details:stream_progress.id::STRING, date_trunc('HOUR', timestamp)\n)\nSELECT\n  query_name, time_bucket,\n  ROUND(state_memory_bytes / (1024.0 * 1024.0), 2) AS state_memory_mb,\n  state_rows_total\nFROM state_data\nWHERE state_memory_bytes > 0\nORDER BY query_name, time_bucket",
       "parameters": [
         {
           "keyword": "time_range_days",
@@ -1078,7 +1541,7 @@
     {
       "name": "ds_data_quality",
       "displayName": "Data Quality",
-      "query": "SELECT\n  query_name,\n  window(timestamp, '1 hour').start AS time_bucket,\n  ROUND(AVG(duplicate_rate) * 100, 2) AS avg_duplicate_rate_pct,\n  SUM(dropped_record_count) AS total_dropped_records,\n  ROUND(AVG(late_record_percentage) * 100, 2) AS avg_late_record_pct,\n  SUM(CASE WHEN schema_change_detected THEN 1 ELSE 0 END) AS schema_change_count,\n  COUNT(*) AS batch_count\nFROM data_quality_metrics\nWHERE CAST(timestamp AS DATE) >= current_date() - MAKE_INTERVAL(0, 0, 0, :time_range_days)\nGROUP BY query_name, window(timestamp, '1 hour').start\nORDER BY query_name, time_bucket",
+      "query": "SELECT\n  query_name,\n  date_trunc('HOUR', timestamp) AS time_bucket,\n  ROUND(AVG(duplicate_rate) * 100, 2) AS avg_duplicate_rate_pct,\n  SUM(dropped_record_count) AS total_dropped_records,\n  ROUND(AVG(late_record_percentage) * 100, 2) AS avg_late_record_pct,\n  SUM(CASE WHEN schema_change_detected THEN 1 ELSE 0 END) AS schema_change_count,\n  COUNT(*) AS batch_count\nFROM data_quality_metrics\nWHERE CAST(timestamp AS DATE) >= current_date() - MAKE_INTERVAL(0, 0, 0, :time_range_days)\nGROUP BY query_name, date_trunc('HOUR', timestamp)\nORDER BY query_name, time_bucket",
       "parameters": [
         {
           "keyword": "time_range_days",
@@ -1100,7 +1563,7 @@
     {
       "name": "ds_infrastructure",
       "displayName": "Infrastructure & Cost",
-      "query": "SELECT\n  cluster_id,\n  window(timestamp, '1 hour').start AS time_bucket,\n  ROUND(AVG(cpu_usage_percent), 1) AS avg_cpu_pct,\n  MAX(cpu_usage_percent) AS max_cpu_pct,\n  ROUND(AVG(memory_usage_percent), 1) AS avg_memory_pct,\n  MAX(memory_usage_percent) AS max_memory_pct,\n  ROUND(AVG(executor_count), 0) AS avg_executor_count,\n  MAX(executor_count) AS max_executor_count,\n  ROUND(SUM(COALESCE(dbu_consumption, 0)), 2) AS total_dbu,\n  SUM(CASE WHEN autoscaling_event = 'SCALE_UP' THEN 1 ELSE 0 END) AS scale_up_count,\n  SUM(CASE WHEN autoscaling_event = 'SCALE_DOWN' THEN 1 ELSE 0 END) AS scale_down_count\nFROM infrastructure_metrics\nWHERE CAST(timestamp AS DATE) >= current_date() - MAKE_INTERVAL(0, 0, 0, :time_range_days)\nGROUP BY cluster_id, window(timestamp, '1 hour').start\nORDER BY cluster_id, time_bucket",
+      "query": "SELECT\n  cluster_id,\n  date_trunc('HOUR', timestamp) AS time_bucket,\n  ROUND(AVG(cpu_usage_percent), 1) AS avg_cpu_pct,\n  MAX(cpu_usage_percent) AS max_cpu_pct,\n  ROUND(AVG(memory_usage_percent), 1) AS avg_memory_pct,\n  MAX(memory_usage_percent) AS max_memory_pct,\n  ROUND(AVG(executor_count), 0) AS avg_executor_count,\n  MAX(executor_count) AS max_executor_count,\n  ROUND(SUM(COALESCE(dbu_consumption, 0)), 2) AS total_dbu,\n  SUM(CASE WHEN autoscaling_event = 'SCALE_UP' THEN 1 ELSE 0 END) AS scale_up_count,\n  SUM(CASE WHEN autoscaling_event = 'SCALE_DOWN' THEN 1 ELSE 0 END) AS scale_down_count\nFROM infrastructure_metrics\nWHERE CAST(timestamp AS DATE) >= current_date() - MAKE_INTERVAL(0, 0, 0, :time_range_days)\nGROUP BY cluster_id, date_trunc('HOUR', timestamp)\nORDER BY cluster_id, time_bucket",
       "parameters": [
         {
           "keyword": "time_range_days",
